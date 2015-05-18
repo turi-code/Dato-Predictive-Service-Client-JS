@@ -1,0 +1,30 @@
+{
+  "name": "dato-predictive-service-client",
+  "version": "1.0.0",
+  "description": "Dato Predictive Service Client makes it easy to make REST API calls to Dato Predictive Service.",
+  "main": "./ps-client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dato-code/Dato-Predictive-Service-Client-JS.git"
+  },
+  "keywords": [
+    "dato",
+    "predictive",
+    "service",
+    "graphlab",
+    "machine",
+    "learning",
+    "analytics",
+    "data",
+    "science"
+  ],
+  "author": "Dick Kreisberg <kreisberg@dato.com> (https://dato.com/)",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
