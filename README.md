@@ -86,6 +86,15 @@ client.query('rec', request_data, function(err, resp) {
 });
 ```
 
+```console
+200
+{
+  "uuid" : "a unique request identifier string",
+  "response" : ["value1", "value2", "..."],
+  "version" : 1
+}
+```
+
 **Notes**
 
 - Different models could support different query methods (recommend, predict, query, etc.)

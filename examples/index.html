@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <title>
+      Example Usage of Predictive Service Client
+    </title>
+
+    <script src="../ps-client.js" type="text/javascript"></script>
+  </head>
+  <body>
+
+    <div id="results">
+    </div>
+
+    <script type="text/javascript">
+    var endpoint = "http://demoLab-1344877544.us-west-2.elb.amazonaws.com";
+    var api_key = "51356418-334c-4e03-bfb2-a04766ac98c4";
+    var client = PredictiveServiceClient(endpoint, api_key);
+
+    var data = { "image_url" : "http://gl-phototag.s3.amazonaws.com/curated_images/n03891332_7359.JPEG" };
+    var request_data = {"method": "classifier", "data" : data};
+
+    function callback(err, response) {
+      var resultsDiv = document.getElementById("results");
+      if (err) {
+        resultsDiv.html = err.message;
+        return;
+      }
+
+      resultsDiv.html = response.statusCode + ' ' + JSON.stringify(response.data);
+    }
+
+    function sendQuery() {
+      client.query("classifier", {input: {item_ids: ["39397"], how_many: 5}}, callback);
+    }
+    </script>
+    <input type="button" onClick="sendQuery()" value ="Send Query" />
+  </body>
+</html>
