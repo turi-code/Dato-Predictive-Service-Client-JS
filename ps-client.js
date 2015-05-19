@@ -42,7 +42,7 @@
     xmlhttp.onreadystatechange = function() {
       if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
         try {
-          response = {'statusCode': response.status, 'data': JSON.parse(responseText)};
+          response = {'statusCode': xmlhttp.status, 'data': JSON.parse(xmlhttp.responseText)};
         }
         catch (err) {
           callback(new Error('Invalid response: ' + err.message), null);
@@ -54,7 +54,11 @@
 
     //send data in body
     if (Object.keys(data).length > 0) {
-       xmlhttp.send(data);
+      try {
+       xmlhttp.send(JSON.stringify(data) );
+       } catch(err) {
+         console.log('Could not send request to Dato Predictive Service.');
+       }
        return;
     }
 
@@ -84,12 +88,12 @@
   };
 
   PredictiveServiceClient.prototype.__constructRequestData = function(request_data, request_id) {
-    var postData = { "api key": this.api_key };
+    var postData = { "api key": this.api_key, "data" : {} };
     if ('method' in request_data) {
-      postData.method = request_data.method;
+      postData.data.method = request_data.method;
     }
     if ('data' in request_data) {
-      postData.data = request_data.data;
+      postData.data.data = request_data.data;
     }
     if (request_id !== null) {
       postData.id = request_id;

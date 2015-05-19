@@ -5,34 +5,71 @@
     </title>
 
     <script src="../ps-client.js" type="text/javascript"></script>
+    <style>
+      div {
+        margin: 10px 0 10px 0;
+      }
+    </style>
   </head>
   <body>
-
-    <div id="results">
+    <div>
+      Endpoint
+      <br>
+      <input type="text" id="endpoint" size="120"/>
     </div>
+    <div>
+      API Key
+      <br>
+      <input type="text" id="apikey" size="120"/>
+    </div>
+    <div>
+      Request
+      <br/>
+      <textarea cols="120" rows="4" id="request"></textarea>
+    </div>
+    <div>
+      Response
+      <br/>
+      <textarea cols="120" rows="8" id="response"></textarea>
+    </div>
+    <input type="button" onClick="sendQuery()" value ="Send Query" />
 
     <script type="text/javascript">
-    var endpoint = "http://demoLab-1344877544.us-west-2.elb.amazonaws.com";
-    var api_key = "51356418-334c-4e03-bfb2-a04766ac98c4";
-    var client = PredictiveServiceClient(endpoint, api_key);
 
-    var data = { "image_url" : "http://gl-phototag.s3.amazonaws.com/curated_images/n03891332_7359.JPEG" };
-    var request_data = {"method": "classifier", "data" : data};
+      var endpoint = "http://yifei-test-744864837.us-west-2.elb.amazonaws.com";
+      var apikey = "3a68543d-9e9a-48b2-bdf0-ae0f70342074";
 
-    function callback(err, response) {
-      var resultsDiv = document.getElementById("results");
-      if (err) {
-        resultsDiv.html = err.message;
-        return;
+      var data = { "users" : ["one", "two"] };
+      var request_data = {"method": "recommend", "data" : data};
+
+      var endpointDiv = document.getElementById('endpoint'),
+          apikeyDiv = document.getElementById('apikey'),
+          requestDiv = document.getElementById('request'),
+          responseDiv = document.getElementById('response');
+
+      function callback(err, response) {
+        if (err) {
+          responseDiv.value = err.message;
+          return;
+        }
+        responseDiv.value = 'Status Code: \n' + response.statusCode + '\n\n' +
+                          'Response Object: \n' + JSON.stringify(response.data);
       }
 
-      resultsDiv.html = response.statusCode + ' ' + JSON.stringify(response.data);
-    }
+      function sendQuery() {
+        var client = PredictiveServiceClient(endpointDiv.value, apikeyDiv.value);
+        try{
+          var request_data = JSON.parse(requestDiv.value);
+          client.query("recommender", request_data, callback);
+        } catch(err) {
+          responseDiv.value = err.message;
+        }
+      }
 
-    function sendQuery() {
-      client.query("classifier", {input: {item_ids: ["39397"], how_many: 5}}, callback);
-    }
+      requestDiv.value = JSON.stringify(request_data);
+      endpointDiv.value = endpoint;
+      apikeyDiv.value = apikey;
+
     </script>
-    <input type="button" onClick="sendQuery()" value ="Send Query" />
   </body>
 </html>
