@@ -1,4 +1,8 @@
 
+// 2015 Dato, Inc.
+// Predictive Service Client - Javascript
+// Licensed under BSD-3
+
 (function (root, factory) {
   if(typeof define === "function" && define.amd) {
     define([], factory);
@@ -11,10 +15,10 @@
 
   var request = function(options) {
     var url = options.url;
-    var method = options.method;
-    var callback = options.callback;
+    var method = options.method || "GET";
+    var callback = options.callback || function() {};
     var data = options.data;
-    var timeout = options.timeout;
+    var timeout = options.timeout || 10000;
 
     var response = "";
 
@@ -30,27 +34,32 @@
       }
     }
 
+    //set timeout
+    xmlhttp.timeout = timeout;
     xmlhttp.ontimeout = function () { callback(new Error('Request timeout'), null); };
 
+    //setup callback
     xmlhttp.onreadystatechange = function() {
-    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-      try {
-        response = {'statusCode': response.status, 'data': responseText};
-      }
-      catch (err) {
-        callback(new Error('Invalid response: ' + err.message), null);
-        return;
-      }
-      callback(null, response);
-
-      if (Object.keys(data).length > 0) {
-         xmlhttp.send(data);
-         return;
-      }
-
-      xmlhttp.send();
+      if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        try {
+          response = {'statusCode': response.status, 'data': JSON.parse(responseText)};
+        }
+        catch (err) {
+          callback(new Error('Invalid response: ' + err.message), null);
+          return;
+        }
+        callback(null, response);
       }
     };
+
+    //send data in body
+    if (Object.keys(data).length > 0) {
+       xmlhttp.send(data);
+       return;
+    }
+
+    //send empty request
+    xmlhttp.send();
   };
 
   var PredictiveServiceClient = function(end_point, api_key) {
@@ -74,30 +83,49 @@
     this.timeout = timeout;
   };
 
+  PredictiveServiceClient.prototype.__constructRequestData = function(request_data, request_id) {
+    var postData = { "api key": this.api_key };
+    if ('method' in request_data) {
+      postData.method = request_data.method;
+    }
+    if ('data' in request_data) {
+      postData.data = request_data.data;
+    }
+    if (request_id !== null) {
+      postData.id = request_id;
+    }
+
+    return postData;
+  };
+
   PredictiveServiceClient.prototype.query = function(po_name, data, callback) {
-    var postData = JSON.stringify({"api_key": this.api_key, "data": data});
+    var postData = this.__constructRequestData(data);
+
     var options = {
       url: this.end_point + '/query/' + po_name,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': postData.length
-      }
+        'Content-Type': 'application/json'
+      },
+      data: postData,
+      callback: callback
     };
-    request(postData, options, callback);
+    request(options);
   };
 
   PredictiveServiceClient.prototype.feedback = function(request_id, data, callback) {
-    var postData = JSON.stringify({"id": request_id, "api_key": this.api_key, "data": data});
+    var postData = this.__constructRequestData(data, request_id);
+
     var options = {
       url: this.end_point + '/feedback',
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': postData.length
-      }
+        'Content-Type': 'application/json'
+      },
+      data: postData,
+      callback: callback
     };
-    request(postData, options, callback);
+    request(options);
   };
 
   return PredictiveServiceClient;
