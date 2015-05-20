@@ -40,7 +40,7 @@
 
     //setup callback
     xmlhttp.onreadystatechange = function() {
-      if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      if (xmlhttp.readyState === 4 && xmlhttp.status == 200) {
         try {
           response = {'statusCode': xmlhttp.status, 'data': JSON.parse(xmlhttp.responseText)};
         }
@@ -49,6 +49,8 @@
           return;
         }
         callback(null, response);
+      } else if (xmlhttp.readyState === 4) {
+        callback(new Error('Request was not successful.'), response = {'statusCode': xmlhttp.status, 'data': JSON.parse(xmlhttp.responseText)});
       }
     };
 
@@ -66,11 +68,11 @@
     xmlhttp.send();
   };
 
-  var PredictiveServiceClient = function(end_point, api_key) {
+  var PredictiveServiceClient = function(endpoint, api_key) {
     if ( !(this instanceof PredictiveServiceClient) ) {
-      return new PredictiveServiceClient(end_point, api_key);
+      return new PredictiveServiceClient(endpoint, api_key);
     }
-    this.end_point = endpoint;
+    this.endpoint = endpoint;
     this.api_key = api_key;
     this.timeout = 10000; // default to 10 seconds timeout
   };
@@ -106,7 +108,7 @@
     var postData = this.__constructRequestData(data);
 
     var options = {
-      url: this.end_point + '/query/' + po_name,
+      url: this.endpoint + '/query/' + po_name,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -121,7 +123,7 @@
     var postData = this.__constructRequestData(data, request_id);
 
     var options = {
-      url: this.end_point + '/feedback',
+      url: this.endpoint + '/feedback',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
