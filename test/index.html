@@ -1,0 +1,99 @@
+<html>
+  <head>
+    <title>
+      Test Predictive Service Client
+    </title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    <script src="../ps-client.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="mocha"><p><a href=".">Index</a></p></div>
+    <div id="messages"></div>
+    <div id="fixtures"></div>
+    <script src="../node_modules/mocha/mocha.js" type="text/javascript"></script>
+    <script src="../node_modules/chai/chai.js" type="text/javascript"></script>
+    <script>mocha.setup('bdd')</script>
+    <script src="../node_modules/sinon-chai/lib/sinon-chai.js"></script>
+    <script src="./lib/sinon-1.14.1.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+    var expect = chai.expect;
+    var assert = chai.assert;
+
+    describe("Test Predictive Services Client", function(){
+
+      beforeEach(function () {
+        this.sandbox = sinon.sandbox.create();
+        this.sandbox.useFakeServer();
+        this.server = this.sandbox.server.create();
+        this.endpoint = 'http://www.testendpoint.com';
+        this.apikey = 'test_api_key';
+        this.request_data = {method:"recommend", data: {users:["one", "two"]}};
+        this.responseText = '{"uuid": "28d8b9da-ebf2-4e96-8b0e-1b9d90880c43", "version": 1,' +
+                            '"response": [{"score": 0.002730024769073299, "user_id": "one", "product_id": "B000AYO3MC", "rank": 1},' +
+                            '{"score": 0.002175366731501189, "user_id": "one", "product_id": "B0000BZ2U8", "rank": 2},' +
+                            '{"score": 0.002133331368343076, "user_id": "one", "product_id": "0736696482", "rank": 3}' +
+                            ']}';
+        this.response = JSON.parse(this.responseText);
+      });
+
+      afterEach(function () {
+        this.server.restore();
+      });
+
+      it("should fetch recommendations from predictive service", function () {
+          this.server.respondWith("POST", this.endpoint + '/query/recommender',
+                                [200, { "Content-Type": "application/json" }, this.responseText]);
+
+          var callback = this.sandbox.spy();
+          var client = new PredictiveServiceClient( this.endpoint, this.apikey);
+
+          client.query("recommender", this.request_data, callback);
+          this.server.respond();
+
+          assert.strictEqual(1, this.server.requests.length, "One request sent.");
+          expect(callback).to.have.been.calledWith(null, {statusCode: 200, data: this.response});
+      });
+
+      it("should pass an error when a 400 response is received from server", function() {
+        var responseText = '{"uuid": "28d8b9da-ebf2-4e96-8b0e-1b9d90880c43", "version": 1,' +
+                            '"response": {' +
+                              '"info": {' +
+                                '"uri": "recommender",' +
+                                '"error": "query() takes exactly 3 arguments (2 given)", "type": "QueryFailed"' +
+                              '},' +
+                              '"message": "QueryFailed"' +
+                            '}}';
+
+        this.server.respondWith("POST", this.endpoint + '/query/recommender',
+                              [400, { "Content-Type": "application/json" }, responseText]);
+        var callback = this.sandbox.spy();
+        var client = new PredictiveServiceClient( this.endpoint, this.apikey);
+        //misspelled method
+        client.query("recommender", this.request_data, callback);
+        this.server.respond();
+
+        assert.strictEqual(1, this.server.requests.length, "One request sent.");
+        expect(callback).to.have.been.calledWith(
+          sinon.match.instanceOf(Error),
+          {
+            statusCode: 400,
+            data: {
+              "uuid": "28d8b9da-ebf2-4e96-8b0e-1b9d90880c43",
+              "version": 1,
+              "response": {
+                "info": {
+                  "uri": "recommender",
+                  "error": "query() takes exactly 3 arguments (2 given)", "type": "QueryFailed"
+                },
+              "message": "QueryFailed"
+              }
+            }
+          }
+        );
+      });
+    });
+    </script>
+    <script>mocha.run();</script>
+  </body>
+</html>

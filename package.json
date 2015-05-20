@@ -4,7 +4,7 @@
   "description": "Dato Predictive Service Client makes it easy to make REST API calls to Dato Predictive Service.",
   "main": "./ps-client.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/./bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -23,8 +23,10 @@
   ],
   "author": "Dick Kreisberg <kreisberg@dato.com> (https://dato.com/)",
   "license": "BSD-3-Clause",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
+    "chai": "^2.3.0",
+    "mocha": "^2.2.5",
+    "sinon-chai": "^2.7.0"
   }
 }
