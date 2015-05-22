@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <title>
+      Example Usage of Predictive Service Client
+    </title>
+
+    <script src="../ps-client.js" type="text/javascript"></script>
+    <style>
+      div {
+        margin: 10px 0 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      Endpoint
+      <br>
+      <input type="text" id="endpoint" size="120"/>
+    </div>
+    <div>
+      API Key
+      <br>
+      <input type="text" id="apikey" size="120"/>
+    </div>
+    <div>
+      Request
+      <br/>
+      <textarea cols="120" rows="4" id="request"></textarea>
+    </div>
+    <div>
+      Response
+      <br/>
+      <textarea cols="120" rows="8" id="response"></textarea>
+    </div>
+    <input type="button" onClick="sendQuery()" value ="Send Query" />
+
+    <script type="text/javascript">
+
+      var endpoint = "http://endpoint.url.com";
+      var apikey = "endpoint-api-key";
+
+      var data = { "users" : ["one", "two"] };
+      var request_data = {"method": "recommend", "data" : data};
+
+      var endpointDiv = document.getElementById('endpoint'),
+          apikeyDiv = document.getElementById('apikey'),
+          requestDiv = document.getElementById('request'),
+          responseDiv = document.getElementById('response');
+
+      function callback(err, response) {
+        if (err) {
+          responseDiv.value = err.message;
+          return;
+        }
+        responseDiv.value = 'Status Code: \n' + response.statusCode + '\n\n' +
+                          'Response Object: \n' + JSON.stringify(response.data);
+      }
+
+      function sendQuery() {
+        var client = PredictiveServiceClient(endpointDiv.value, apikeyDiv.value);
+        try{
+          var request_data = JSON.parse(requestDiv.value);
+          client.query("recommender", request_data, callback);
+        } catch(err) {
+          responseDiv.value = err.message;
+        }
+      }
+
+      requestDiv.value = JSON.stringify(request_data);
+      endpointDiv.value = endpoint;
+      apikeyDiv.value = apikey;
+
+    </script>
+  </body>
+</html>
