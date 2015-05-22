@@ -2,6 +2,7 @@
   "name": "dato-predictive-service-client",
   "version": "1.0.0",
   "description": "Dato Predictive Service Client makes it easy to make REST API calls to Dato Predictive Service.",
+  "homepage": "https://dato.com",
   "main": "./ps-client.js",
   "scripts": {
     "test": "./node_modules/./bin/mocha"
