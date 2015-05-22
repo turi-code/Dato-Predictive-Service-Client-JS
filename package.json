@@ -1,5 +1,5 @@
 {
-  "name": "dato-predictive-service-client",
+  "name": "dato-predictive-service-client-js",
   "version": "1.0.0",
   "description": "Dato Predictive Service Client makes it easy to make REST API calls to Dato Predictive Service.",
   "homepage": "https://dato.com",
