@@ -5,7 +5,7 @@
   "homepage": "https://dato.com",
   "main": "./ps-client.js",
   "scripts": {
-    "test": "./node_modules/./bin/mocha"
+    "test": "./node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
