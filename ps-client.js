@@ -74,7 +74,7 @@
     }
     this.endpoint = endpoint;
     this.api_key = api_key;
-    this.schema = -1;
+    this.schema_version = -1;
     this.timeout = 10000; // default to 10 seconds timeout
   };
 
@@ -97,12 +97,12 @@
         cb(error);
       } else {
         if (resp.statusCode != 200) {
-          throw new Error("Error connecting to Dato Predictive Service %s." % this.end_point);
+          cb("Error connecting to Dato Predictive Service %s." % this.end_point);
         } else {
-          if (typeof(resp.data) != "string" && 'schema_version' in resp.data) {
-            this.schema = resp.data.schema_version; 
+          if (typeof(resp.data) === "object" && 'schema_version' in resp.data) {
+            this.schema_version = resp.data.schema_version; 
           } else {
-            this.schema = 0;
+            this.schema_version = 0;
           }
           cb(null);
         }
@@ -119,7 +119,7 @@
   };
   PredictiveServiceClient.prototype.__constructRequestData = function(request_data, request_id) {
     var postData = {};
-    if (this.schema < 7) { 
+    if (this.schema_version < 7) { 
       postData = { "api key": this.api_key, "data" : {} };
     } else { 
       postData = { "data" : {} };
@@ -130,7 +130,7 @@
         postData.data.data = request_data.data;
       }
     } else {
-      // handling the case where passing a function instead of model
+      // handling the case where querying a user defined function instead of a model
       postData.data = request_data
     }
     if (request_id !== null) {
@@ -149,7 +149,7 @@
         this._query(po_name, data, callback);
       }
     }.bind(this);
-    if (this.schema == -1) { 
+    if (this.schema_version == -1) { 
       this.setSchema(schema_callback);
     } else {
       this._query(po_name, data, callback);
@@ -183,7 +183,7 @@
         this._feedback(request_id, data, callback);
       }
     }.bind(this);
-    if (this.schema == -1) { 
+    if (this.schema_version == -1) { 
       this.setSchema(schema_callback);
     } else {
       this._feedback(request_id, data, callback);
