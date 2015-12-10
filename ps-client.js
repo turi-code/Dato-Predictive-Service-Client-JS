@@ -57,11 +57,11 @@
     //send data in body
     if (Object.keys(data).length > 0) {
       try {
-       xmlhttp.send(JSON.stringify(data) );
-       } catch(err) {
-         console.log('Could not send request to Dato Predictive Service.');
-       }
-       return;
+        xmlhttp.send(JSON.stringify(data) );
+      } catch(err) {
+        console.log('Could not send request to Dato Predictive Service.');
+      }
+      return;
     }
 
     //send empty request
@@ -74,6 +74,7 @@
     }
     this.endpoint = endpoint;
     this.api_key = api_key;
+    this.schema = -1;
     this.timeout = 10000; // default to 10 seconds timeout
   };
 
@@ -89,13 +90,48 @@
     this.timeout = timeout;
   };
 
+  PredictiveServiceClient.prototype.setSchema = function(cb) { 
+
+    var callback = function(error, resp) {
+      if (resp == null) {
+        cb(error);
+      } else {
+        if (resp.statusCode != 200) {
+          throw new Error("Error connecting to Dato Predictive Service %s." % this.end_point);
+        } else {
+          if (typeof(resp.data) != "string" && 'schema_version' in resp.data) {
+            this.schema = resp.data.schema_version; 
+          } else {
+            this.schema = 0;
+          }
+          cb(null);
+        }
+      }
+    }.bind(this);
+    var options = {
+      url: this.endpoint + '/',
+      method: 'GET',
+      data: {},
+      callback: callback
+    };
+    request(options);
+
+  };
   PredictiveServiceClient.prototype.__constructRequestData = function(request_data, request_id) {
-    var postData = { "api key": this.api_key, "data" : {} };
+    var postData = {};
+    if (this.schema < 7) { 
+      postData = { "api key": this.api_key, "data" : {} };
+    } else { 
+      postData = { "data" : {} };
+    }
     if ('method' in request_data) {
       postData.data.method = request_data.method;
-    }
-    if ('data' in request_data) {
-      postData.data.data = request_data.data;
+      if ('data' in request_data) {
+        postData.data.data = request_data.data;
+      }
+    } else {
+      // handling the case where passing a function instead of model
+      postData.data = request_data
     }
     if (request_id !== null) {
       postData.id = request_id;
@@ -104,14 +140,33 @@
     return postData;
   };
 
-  PredictiveServiceClient.prototype.query = function(po_name, data, callback) {
-    var postData = this.__constructRequestData(data);
+  PredictiveServiceClient.prototype.query = function(po_name, data, callback) { 
 
+    var schema_callback = function(error) { 
+      if (error != null) { 
+        throw new Error(error);
+      } else { 
+        this._query(po_name, data, callback);
+      }
+    }.bind(this);
+    if (this.schema == -1) { 
+      this.setSchema(schema_callback);
+    } else {
+      this._query(po_name, data, callback);
+    }
+
+  };
+
+
+  PredictiveServiceClient.prototype._query = function(po_name, data, callback) {
+    var postData = this.__constructRequestData(data);
+    var encodedString = btoa('api_key:' + this.api_key); // IE>=10
     var options = {
       url: this.endpoint + '/query/' + po_name,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + encodedString 
       },
       data: postData,
       callback: callback
@@ -119,14 +174,32 @@
     request(options);
   };
 
-  PredictiveServiceClient.prototype.feedback = function(request_id, data, callback) {
-    var postData = this.__constructRequestData(data, request_id);
+  PredictiveServiceClient.prototype.feedback = function(request_id, data, callback) { 
 
+    var schema_callback = function(error) { 
+      if (error != null) { 
+        throw new Error(error);
+      } else { 
+        this._feedback(request_id, data, callback);
+      }
+    }.bind(this);
+    if (this.schema == -1) { 
+      this.setSchema(schema_callback);
+    } else {
+      this._feedback(request_id, data, callback);
+    }
+
+  };
+
+  PredictiveServiceClient.prototype._feedback = function(request_id, data, callback) {
+    var postData = this.__constructRequestData(data, request_id);
+    var encodedString = btoa('api_key:' + this.api_key); // IE>=10
     var options = {
       url: this.endpoint + '/feedback',
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + encodedString
       },
       data: postData,
       callback: callback
