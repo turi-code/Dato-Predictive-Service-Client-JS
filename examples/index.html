@@ -23,6 +23,11 @@
       <input type="text" id="apikey" size="120"/>
     </div>
     <div>
+      Predictive Object Name
+      <br>
+      <input type="text" id="poname" size="120"/>
+    </div>
+    <div>
       Request
       <br/>
       <textarea cols="120" rows="4" id="request"></textarea>
@@ -41,12 +46,14 @@
 
       var data = { "users" : ["one", "two"] };
       var request_data = {"method": "recommend", "data" : data};
+      var po_name = "add";
 
       var endpointDiv = document.getElementById('endpoint'),
           apikeyDiv = document.getElementById('apikey'),
           requestDiv = document.getElementById('request'),
-          responseDiv = document.getElementById('response');
-
+          responseDiv = document.getElementById('response'),
+          ponameDiv = document.getElementById('poname');
+      
       function callback(err, response) {
         if (err) {
           responseDiv.value = err.message;
@@ -60,13 +67,15 @@
         var client = PredictiveServiceClient(endpointDiv.value, apikeyDiv.value);
         try{
           var request_data = JSON.parse(requestDiv.value);
-          client.query("recommender", request_data, callback);
+          var po_name_data = ponameDiv.value;
+          client.query(po_name_data, request_data, callback);
         } catch(err) {
           responseDiv.value = err.message;
         }
       }
 
       requestDiv.value = JSON.stringify(request_data);
+      ponameDiv.value = po_name;
       endpointDiv.value = endpoint;
       apikeyDiv.value = apikey;
 
